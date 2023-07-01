@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/goravel/framework/contracts/http"
+	"github.com/goravel/framework/contracts/route"
 	"github.com/goravel/framework/facades"
 
 	"goravel/app/http/controllers"
@@ -15,5 +16,11 @@ func Web() {
 	})
 
 	userController := controllers.NewUserController()
+	paymentController := controllers.NewPaymentController()
 	facades.Route().Get("/users/{id}", userController.Show)
+	facades.Route().Post("/users", userController.Create)
+
+	facades.Route().Prefix("/api").Group(func(route route.Route) {
+		route.Post("/payments", paymentController.Create)
+	})
 }

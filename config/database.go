@@ -53,6 +53,14 @@ func init() {
 				"prefix":   "",
 				"singular": false, // Table name is singular
 			},
+			"couchbase": map[string]any{
+				"driver":   "couchbase",
+				"host":     config.Env("DB_HOST", "127.0.0.1"),
+				"port":     config.Env("DB_PORT", 1433),
+				"bucker":   config.Env("DB_BUCKET", "forge"),
+				"username": config.Env("DB_USERNAME", ""),
+				"password": config.Env("DB_PASSWORD", ""),
+			},
 		},
 
 		// Set pool configuration

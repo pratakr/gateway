@@ -11,35 +11,36 @@ import (
 )
 
 type CouchbaseServiceProvider struct {
-	cluster *gocb.Cluster
-	bucket  *gocb.Bucket
 }
 
 func (receiver *CouchbaseServiceProvider) Register(app foundation.Application) {
-	config := facades.Config()
-	connectionString := fmt.Sprintf("%v", config.Env("COUCHBASE_CONNECTION_STRING", "localhost"))
-	bucketName := fmt.Sprintf("%v", config.Env("COUCHBASE_BUCKET_NAME", "paygate"))
-	username := fmt.Sprintf("%v", config.Env("COUCHBASE_USERNAME", "admax"))
-	password := fmt.Sprintf("%v", config.Env("COUCHBASE_PASSWORD", "fcD!1234"))
 
-	cluster, err := gocb.Connect(connectionString, gocb.ClusterOptions{
-		Authenticator: gocb.PasswordAuthenticator{
-			Username: username,
-			Password: password,
-		},
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
+	app.Singleton("couchbase", func(app foundation.Application) (any, error) {
+		config := facades.Config()
+		connectionString := fmt.Sprintf("%v", config.Env("COUCHBASE_CONNECTION_STRING", "localhost"))
+		bucketName := fmt.Sprintf("%v", config.Env("COUCHBASE_BUCKET_NAME", "paygate"))
+		username := fmt.Sprintf("%v", config.Env("COUCHBASE_USERNAME", "admax"))
+		password := fmt.Sprintf("%v", config.Env("COUCHBASE_PASSWORD", "fcD!1234"))
 
-	bucket := cluster.Bucket(bucketName)
+		cluster, err := gocb.Connect(connectionString, gocb.ClusterOptions{
+			Authenticator: gocb.PasswordAuthenticator{
+				Username: username,
+				Password: password,
+			},
+		})
+		if err != nil {
+			log.Fatal(err)
+			return nil, err
+		}
 
-	err = bucket.WaitUntilReady(5*time.Second, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
+		bucket := cluster.Bucket(bucketName)
 
-	app.BindWith("couchbase", func(app foundation.Application, parameters map[string]any) (any, error) {
+		err = bucket.WaitUntilReady(5*time.Second, nil)
+		if err != nil {
+			log.Fatal(err)
+			return nil, err
+		}
+
 		return bucket, nil
 	})
 

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"goravel/app/models"
 	"log"
 	"time"
@@ -27,11 +26,6 @@ func (r *PaymentController) Index(ctx http.Context) {
 }
 
 func (r *PaymentController) Create(ctx http.Context) {
-	config := facades.Config()
-	connectionString := fmt.Sprintf("%v", config.Env("COUCHBASE_CONNECTION_STRING", "localhost"))
-	bucketName := fmt.Sprintf("%v", config.Env("COUCHBASE_BUCKET_NAME", "paygate"))
-	username := fmt.Sprintf("%v", config.Env("COUCHBASE_USERNAME", "admax"))
-	password := fmt.Sprintf("%v", config.Env("COUCHBASE_PASSWORD", "fcD!1234"))
 
 	type RequestInput struct {
 		Product    string  `form:"product" json:"product"`
@@ -43,25 +37,12 @@ func (r *PaymentController) Create(ctx http.Context) {
 	var requestInput RequestInput
 	ctx.Request().Bind(&requestInput)
 
-	cluster, err := gocb.Connect(connectionString, gocb.ClusterOptions{
-		Authenticator: gocb.PasswordAuthenticator{
-			Username: username,
-			Password: password,
-		},
-	})
+	buc, err := facades.App().Make("couchbase")
 	if err != nil {
 		log.Fatal(err)
-		ctx.Response().Json(400, http.Json{"error": "1000", "message": "error"})
+		ctx.Response().Json(402, http.Json{"error": "900", "message": "error"})
 	}
-
-	bucket := cluster.Bucket(bucketName)
-	err = bucket.WaitUntilReady(5*time.Second, nil)
-	if err != nil {
-		log.Fatal(err)
-		ctx.Response().Json(401, http.Json{"error": "1000", "message": "error"})
-	}
-
-	// col := app.Couchbase().bucket.Collection("payments")
+	var bucket *gocb.Bucket = buc.(*gocb.Bucket)
 
 	col := bucket.Collection("payments")
 

@@ -15,10 +15,13 @@ func Web() {
 		})
 	})
 
+	healthcheckController := controllers.NewHealthcheckController()
 	userController := controllers.NewUserController()
 	paymentController := controllers.NewPaymentController()
 	facades.Route().Get("/users/{id}", userController.Show)
 	facades.Route().Post("/users", userController.Create)
+
+	facades.Route().Get("/healthcheck", healthcheckController.Index)
 
 	facades.Route().Prefix("/api").Group(func(route route.Route) {
 		route.Post("/payments", paymentController.Create)
